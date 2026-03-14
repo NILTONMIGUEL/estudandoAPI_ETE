@@ -126,13 +126,13 @@ class UserController extends Controller
             //verificando se existe os campos preenchidos se sim modifique os valores
             if($request->has('name')){
                 $user->name = $request->name;
-            };
+            }
             if($request->has('email')){
                 $user->email = $request->email;
-            };
+            }
             if($request->has('password')){
                 $user->password = Hash::make($request->password);
-            };
+            }
             //Salvando a modificação
             $user->save();
 
@@ -142,7 +142,7 @@ class UserController extends Controller
                 'message' => 'user update successful',
                 'user' => $user,
             ],Response::HTTP_OK);
-        };
+        }
 
 
         
@@ -155,6 +155,26 @@ class UserController extends Controller
             'token' => $token, //passando o token como resposta para salvar detnro do banco de dados
         ],
         Response::HTTP_OK); //retornando a resposta de status ok
+    }
 
-    };
+
+
+        //criando a função para validar o token
+
+        public function validarToken(Request $request){
+            //salvando na variavel user o usuario que veio na requisição
+            $user = $request->user();
+
+            //se o usuario existe
+            if($user){
+                return response()->json(['
+                status' => 'success',
+                'message' => 'token is valid',
+                'user' => $user],Response::HTTP_OK);
+            }
+            else{
+                return response()->json(['status'=> 'error',
+                 'message' => 'Invalid token'],Response::HTTP_UNAUTHORIZED);
+            };
+        }
 }
