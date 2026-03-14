@@ -9,7 +9,16 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    
+    //criando o página inicial para retornar todos os usuarios
+    public funtion index(){
+        //salvando todos os meus usuarios dentro da variavel users
+        $users = User::all();
+        //retornando um json com todos os usuarios e a resposta de ok
+        return response()->json($users , Response::HTTP_OK);
+    };
+
+
+
   //criando a função para login
   //pegando os dados vindo do request ou formularios
     public function login(Request $request){
@@ -31,18 +40,10 @@ class UserController extends Controller
             ]
             ,Response::HTTP_UNAUTHORIZED);// retornando a resposta de não autorizado
         };
+        
 
-        //criando o token da api para manter o usuario logado
-        $token = $user->createToken($request->email)->plainTextToken;
-        return response()->json([
-            'status' => 'ok',
-            'message' => 'login successful',
-            'token' => $token, //passando o token como resposta para salvar detnro do banco de dados
-        ],
-        Response::HTTP_OK); //retornando a resposta de status ok
 
-    }
-
+        
     //fazendo o logout
     public function logout(Request $request){
         //pego o meu o token do meu usuario atual e deleto ele
@@ -52,8 +53,12 @@ class UserController extends Controller
             'message' => 'LogOut SuccessFul',
         ],
         Response::HTTP_OK);
-    }
+    };
 
+
+        
+        
+    //criando a função de registrar o usuario
     public function register(Request $request){
 
         $request->validate([
@@ -62,10 +67,94 @@ class UserController extends Controller
             'password' => 'required|min:3|max:7|confirmed',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password,
+            'password' => Hash::make($request->password),
         ]);
-    }
+
+        //retornando para mim o usuario criado e o status de ok
+        return response()->json([
+            'status' => 'success',
+            'message' => 'register successful',
+            'user' => $user;
+        ],Response::HTTP_CREATED);
+    };
+
+
+
+        
+
+    //criando a função de mostrar um usuario selecionado
+    public function show($id){
+
+        //Salvando na variavel user o usuario do banco que tenha o id tal
+        $user = User::find($id);
+        //se não existe o usuario me retorna um erro e resposta de usuario não encontrado
+        if(!$user){
+            return response()->json([
+               'status' => 'error',
+               'message' => 'user not found', 
+                ],Response::HTTP_NOT_FOUND);
+        }
+        //se tudo ocorrer certo me retorna o usuario atual e a resposta ok
+        return response()->json($user, Response::HTTP_OK);
+    };
+
+        
+
+
+        
+        //criando a função para atualizar o usuario atual
+        public function update(Resquest $request , $id){
+            //pegando meu usuario atual e salvando dentro da variavel user
+            $user = User::find($id);
+            //checando se o usuario não existe 
+            if(!user){
+                //me retornando um json com erro 
+                return response()->json(['status'=> 'error',
+                'message' => 'user not found'], Response::HTTP_NOT_FOUND);
+            };
+
+            //caso o usuario exista faço a validação dos campos
+            $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'email' => 'sometimes|required|email|unique:users,email,' . $id,
+                'password' => 'sometimes|required|string|min:3|max:8|confirmed'
+            ]);
+
+            //verificando se existe os campos preenchidos se sim modifique os valores
+            if($request->has('name')){
+                $user->name = $request->name;
+            };
+            if($request->has('email')){
+                $user->email = $request->email;
+            };
+            if($request->has('password')){
+                $user->password = Hash::make($request->password);
+            };
+            //Salvando a modificação
+            $user->save();
+
+            //me retornando o json com os dados do meu usuario e a mensagem de sucesso
+            return response()->json([
+                'status' => 'success',
+                'message' => 'user update successful',
+                'user' => $user,
+            ],Response::HTTP_OK);
+        };
+
+
+        
+        
+        //criando o token da api para manter o usuario logado
+        $token = $user->createToken($request->email)->plainTextToken;
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'login successful',
+            'token' => $token, //passando o token como resposta para salvar detnro do banco de dados
+        ],
+        Response::HTTP_OK); //retornando a resposta de status ok
+
+    };
 }
