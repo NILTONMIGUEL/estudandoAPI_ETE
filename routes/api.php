@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProdutoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -15,3 +16,6 @@ Route::get('/show{id}',[UserController::class, 'show']);
 Route::put('/update{id}',[UserController::class, 'update']);
 Route::Post('/login',[UserController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [UserController::class, 'logout']);
+
+//criando a rota que tem todos os controles
+Route::apiResource('produto',ProdutoController::class);
