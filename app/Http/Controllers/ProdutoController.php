@@ -35,11 +35,22 @@ class ProdutoController extends Controller
     public function update(Request $request , $id){
           
          $produto = produtos::find($id);
-
+        
+         if(!$produto){
+            return response()->json([
+                'message' => 'error' 
+            ], Response::HTTP_NOT_FOUND);
+         }
          $request->validate([
-            'nome' => 'required|string|max:100',
-            'descricao' => 'nullable'
+            'nome' => 'sometimes|required|string|max:100',
+            'descricao' => 'sometimes|nullable|string',
+            'preco' => 'sometimes|required|numeric',
+            'quantidade' => 'sometimes|required|numeric'
          ]);
+
+         $produto::update($request->all());
+         return response()->json(['message' => 'produto modificado com sucesso',
+         'produto' => $produto], Response::HTTP_OK);
     }
     public function show($id){
         
@@ -47,10 +58,10 @@ class ProdutoController extends Controller
 
        if(!$produto){
           return response()->json([
-            'status'=> 'produto invalido']);
+            'message'=> 'produto invalido']);
 
         return response()->json([
-            "status" => "encontrado com sucesso",
+            "message" => "encontrado com sucesso",
             "dados" => $produto,
         ] , Response::HTTP_OK);
        }
@@ -58,7 +69,15 @@ class ProdutoController extends Controller
     }
 
     //criando o método para apagar o produto
-    public function destroy(){
+    public function destroy($id){
+
+        $produto = produtos::find($id);
+        if(!$produto){
+            return response()->json(['message' => 'produto não encontrado'], Response::HTTP_NOT_FOUND);
+        }
+
+        $produto->delete();
+        return response()->json(['message' => 'produto excluido com sucesso'], Response::HTTP_OK);
 
     }
 
